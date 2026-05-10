@@ -2,10 +2,6 @@
 
 A full-stack collaborative project management tool built with React, Vite, Node.js, Express, and PostgreSQL.
 
-![Project Dashboard Screenshot Placeholder](/path/to/screenshot.png)
-
-**Live URL**: [Deploying to Railway...](#deployment-guide)  
-**GitHub Repo**: [Your Repository URL](#)
 
 ## Features
 - **Authentication**: JWT-based secure login and signup
