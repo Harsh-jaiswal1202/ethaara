@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  
+  --color-dark-bg: #0f172a;
+  --color-dark-surface: #1e293b;
+  --color-dark-card: #334155;
+  --color-dark-border: #475569;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-slate-800/40 backdrop-blur-md border border-slate-700/50 shadow-xl;
+  }
+  
+  .glass-card {
+    @apply bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-lg hover:shadow-slate-900/50 transition-all duration-300;
+  }
+  
+  .input-field {
+    @apply w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-lg shadow-lg shadow-primary-500/30 transition-all duration-200 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-all duration-200 active:scale-95;
+  }
+}
+
+/* Custom Scrollbar for Kanban */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
