@@ -7,6 +7,12 @@ const {
   getTasks,
   updateTask,
   deleteTask,
+  createSubtask,
+  updateSubtask,
+  deleteSubtask,
+  createComment,
+  uploadAttachment,
+  deleteAttachment,
 } = require('../controllers/task.controller');
 
 const router = express.Router();
@@ -44,5 +50,43 @@ router.patch(
 
 // Delete task (ADMIN only — checked inside controller)
 router.delete('/:taskId', deleteTask);
+
+// Subtask Routes
+router.post(
+  '/:taskId/subtasks',
+  [body('title').trim().notEmpty().withMessage('Subtask title is required.')],
+  createSubtask
+);
+
+router.patch(
+  '/:taskId/subtasks/:subtaskId',
+  updateSubtask
+);
+
+router.delete(
+  '/:taskId/subtasks/:subtaskId',
+  deleteSubtask
+);
+
+// Comment Routes
+router.post(
+  '/:taskId/comments',
+  [body('content').trim().notEmpty().withMessage('Comment cannot be empty.')],
+  createComment
+);
+
+// Attachment Routes
+const upload = require('../middleware/upload.middleware');
+
+router.post(
+  '/:taskId/attachments',
+  upload.single('file'),
+  uploadAttachment
+);
+
+router.delete(
+  '/:taskId/attachments/:attachmentId',
+  deleteAttachment
+);
 
 module.exports = router;

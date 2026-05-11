@@ -9,6 +9,7 @@ const Signup = React.lazy(() => import('./pages/Signup'));
 const ProjectList = React.lazy(() => import('./pages/ProjectList'));
 const ProjectDetail = React.lazy(() => import('./pages/ProjectDetail'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const HomeDashboard = React.lazy(() => import('./pages/HomeDashboard'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -24,7 +25,8 @@ function Layout() {
         <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <React.Suspense fallback={<LoadingFallback />}>
             <Routes>
-              <Route path="/" element={<ProjectList />} />
+              <Route path="/" element={<HomeDashboard />} />
+              <Route path="/all" element={<ProjectList />} />
               <Route path="/:id" element={<ProjectDetail />} />
               <Route path="/:id/dashboard" element={<Dashboard />} />
               <Route path="*" element={<Navigate to="/projects" replace />} />
@@ -38,7 +40,7 @@ function Layout() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-primary-500/30 selection:text-primary-200">
+    <div className="min-h-screen selection:bg-primary-500/30 selection:text-primary-500">
       <Routes>
         <Route path="/login" element={<React.Suspense fallback={<LoadingFallback />}><Login /></React.Suspense>} />
         <Route path="/signup" element={<React.Suspense fallback={<LoadingFallback />}><Signup /></React.Suspense>} />

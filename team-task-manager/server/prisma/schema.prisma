@@ -16,6 +16,9 @@ model User {
   projects      ProjectMember[]
   assignedTasks TaskAssignment[]
   adminOf       Project[]        @relation("ProjectAdmin")
+  comments      Comment[]
+  activities    Activity[]
+  attachments   Attachment[]
 }
 
 model Project {
@@ -27,6 +30,7 @@ model Project {
   admin       User            @relation("ProjectAdmin", fields: [adminId], references: [id])
   members     ProjectMember[]
   tasks       Task[]
+  labels      Label[]
 }
 
 model ProjectMember {
@@ -51,6 +55,41 @@ model Task {
   projectId   String
   project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignments TaskAssignment[]
+  labels      TaskLabel[]
+  subtasks    Subtask[]
+  comments    Comment[]
+  activities  Activity[]
+  attachments Attachment[]
+}
+
+model Label {
+  id        String      @id @default(uuid())
+  name      String
+  color     String      @default("slate")
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     TaskLabel[]
+
+  @@unique([projectId, name])
+}
+
+model TaskLabel {
+  id      String @id @default(uuid())
+  taskId  String
+  labelId String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, labelId])
+}
+
+model Subtask {
+  id          String   @id @default(uuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
 }
 
 model TaskAssignment {
@@ -61,6 +100,38 @@ model TaskAssignment {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, userId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  action    String   // e.g., "changed status to IN_PROGRESS", "created the task"
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileUrl   String
+  fileType  String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 enum Role {

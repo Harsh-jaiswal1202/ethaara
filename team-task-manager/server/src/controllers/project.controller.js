@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { validationResult } = require('express-validator');
+const { deleteUploadedFiles } = require('../utils/files');
 
 const prisma = new PrismaClient();
 
@@ -143,6 +144,11 @@ const addMember = async (req, res, next) => {
     });
 
     res.status(201).json(member);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.id}`).emit('projectUpdated');
+    }
   } catch (error) {
     next(error);
   }
@@ -169,10 +175,122 @@ const removeMember = async (req, res, next) => {
     });
 
     res.json({ message: 'Member removed successfully.' });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${projectId}`).emit('projectUpdated');
+    }
   } catch (error) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: true, message: 'Member not found.', status: 404 });
     }
+    next(error);
+  }
+};
+
+// Delete project (ADMIN only)
+const deleteProject = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) {
+      return res.status(404).json({ error: true, message: 'Project not found.', status: 404 });
+    }
+
+    if (project.adminId !== req.user.id) {
+      return res.status(403).json({ error: true, message: 'Only the project admin can delete this project.', status: 403 });
+    }
+
+    const attachments = await prisma.attachment.findMany({
+      where: { task: { projectId: id } },
+      select: { fileUrl: true },
+    });
+
+    deleteUploadedFiles(attachments);
+
+    await prisma.project.delete({ where: { id } });
+
+    res.json({ message: 'Project deleted successfully.' });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${id}`).emit('projectDeleted', { projectId: id });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Global dashboard stats (across all user projects)
+const getGlobalDashboard = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // Get all projects where user is a member
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId },
+      include: {
+        project: {
+          include: {
+            tasks: {
+              include: {
+                assignments: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const projects = memberships.map((m) => ({
+      ...m.project,
+      userRole: m.role,
+    }));
+
+    // Aggregate tasks assigned to user
+    const allTasks = [];
+    projects.forEach((p) => {
+      p.tasks.forEach((t) => {
+        const isAssigned = t.assignments.some((a) => a.userId === userId);
+        allTasks.push({ ...t, isAssigned, projectName: p.name });
+      });
+    });
+
+    const myTasks = allTasks.filter((t) => t.isAssigned);
+    
+    const stats = {
+      totalProjects: projects.length,
+      totalTasks: allTasks.length,
+      myTasksCount: myTasks.length,
+      completedTasks: allTasks.filter((t) => t.status === 'DONE').length,
+      myCompletedTasks: myTasks.filter((t) => t.status === 'DONE').length,
+    };
+
+    const now = new Date();
+    const myOverdueTasks = myTasks.filter(
+      (t) => t.dueDate && new Date(t.dueDate) < now && t.status !== 'DONE'
+    );
+
+    // Tasks by status for charts (global)
+    const byStatus = {
+      TODO: allTasks.filter((t) => t.status === 'TODO').length,
+      IN_PROGRESS: allTasks.filter((t) => t.status === 'IN_PROGRESS').length,
+      DONE: allTasks.filter((t) => t.status === 'DONE').length,
+    };
+
+    res.json({
+      projects: projects.map(p => ({
+        id: p.id,
+        name: p.name,
+        taskCount: p.tasks.length,
+        userRole: p.userRole
+      })),
+      stats,
+      myOverdueTasks,
+      byStatus
+    });
+  } catch (error) {
     next(error);
   }
 };
@@ -237,4 +355,4 @@ const getDashboard = async (req, res, next) => {
   }
 };
 
-module.exports = { createProject, getProjects, getProject, addMember, removeMember, getDashboard };
+module.exports = { createProject, getProjects, getProject, addMember, removeMember, deleteProject, getDashboard, getGlobalDashboard };

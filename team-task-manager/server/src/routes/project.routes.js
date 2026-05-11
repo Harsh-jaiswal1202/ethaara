@@ -8,7 +8,9 @@ const {
   getProject,
   addMember,
   removeMember,
+  deleteProject,
   getDashboard,
+  getGlobalDashboard,
 } = require('../controllers/project.controller');
 
 const router = express.Router();
@@ -25,6 +27,9 @@ router.post(
   createProject
 );
 
+// Global dashboard
+router.get('/dashboard', getGlobalDashboard);
+
 // Get all projects for logged-in user
 router.get('/', getProjects);
 
@@ -39,5 +44,8 @@ router.post('/:id/members', requireAdmin('id'), addMember);
 
 // Remove member (ADMIN only)
 router.delete('/:id/members/:userId', requireAdmin('id'), removeMember);
+
+// Delete project (ADMIN only)
+router.delete('/:id', requireAdmin('id'), deleteProject);
 
 module.exports = router;

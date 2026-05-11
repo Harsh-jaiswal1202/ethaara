@@ -1,7 +1,8 @@
-import React, { useContext, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { LockClosedIcon, EnvelopeIcon, UserIcon } from '@heroicons/react/24/outline';
+import AuthShell from '../components/AuthShell';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -9,14 +10,14 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { signup } = useContext(AuthContext);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
       await signup(name, email, password);
       navigate('/projects');
@@ -32,18 +33,17 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card w-full max-w-md p-8 rounded-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-primary-700"></div>
-        
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-slate-400">Join to start managing tasks</p>
+    <AuthShell mode="signup">
+      <div className="auth-form-card">
+        <div className="mb-8">
+          <span className="auth-eyebrow">Create account</span>
+          <h1 className="auth-title">Create Account</h1>
+          <p className="auth-subtitle">Set up your workspace in a few seconds.</p>
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 flex items-start">
-            <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="auth-alert">
+            <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{error}</span>
@@ -52,15 +52,17 @@ const Signup = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <UserIcon className="h-5 w-5 text-slate-500" />
+            <label className="auth-label" htmlFor="signup-name">Full Name</label>
+            <div className="auth-input-wrap">
+              <div className="auth-input-icon">
+                <UserIcon className="h-5 w-5" />
               </div>
               <input
+                id="signup-name"
                 type="text"
                 required
-                className="input-field pl-10"
+                autoComplete="name"
+                className="auth-input"
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -69,15 +71,17 @@ const Signup = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <EnvelopeIcon className="h-5 w-5 text-slate-500" />
+            <label className="auth-label" htmlFor="signup-email">Email Address</label>
+            <div className="auth-input-wrap">
+              <div className="auth-input-icon">
+                <EnvelopeIcon className="h-5 w-5" />
               </div>
               <input
+                id="signup-email"
                 type="email"
                 required
-                className="input-field pl-10"
+                autoComplete="email"
+                className="auth-input"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -86,16 +90,18 @@ const Signup = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockClosedIcon className="h-5 w-5 text-slate-500" />
+            <label className="auth-label" htmlFor="signup-password">Password</label>
+            <div className="auth-input-wrap">
+              <div className="auth-input-icon">
+                <LockClosedIcon className="h-5 w-5" />
               </div>
               <input
+                id="signup-password"
                 type="password"
                 required
                 minLength={6}
-                className="input-field pl-10"
+                autoComplete="new-password"
+                className="auth-input"
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -103,11 +109,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary flex justify-center items-center py-3 text-lg mt-2"
-          >
+          <button type="submit" disabled={loading} className="auth-submit">
             {loading ? (
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -117,14 +119,12 @@ const Signup = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-slate-400">
+        <div className="auth-switch">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
-            Sign in
-          </Link>
+          <Link to="/login">Sign in</Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

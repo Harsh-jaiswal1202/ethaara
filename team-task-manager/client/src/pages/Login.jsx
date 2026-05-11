@@ -1,24 +1,34 @@
-import React, { useContext, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import AuthShell from '../components/AuthShell';
+import api from '../api/axios';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
       await login(email, password);
-      navigate('/projects');
+      try {
+        const { data: projects } = await api.get('/projects');
+        const lastProjectId = localStorage.getItem('lastProjectId');
+        const project = projects.find((item) => item.id === lastProjectId) || projects[0];
+        navigate(project ? `/projects/${project.id}/dashboard` : '/projects');
+      } catch (projectError) {
+        console.error('Failed to load projects after login', projectError);
+        navigate('/projects');
+      }
     } catch (err) {
       if (err.response?.data?.errors) {
         setError(err.response.data.errors[0].message);
@@ -31,35 +41,36 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card w-full max-w-md p-8 rounded-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-primary-700"></div>
-        
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-slate-400">Sign in to manage your tasks</p>
+    <AuthShell mode="login">
+      <div className="auth-form-card">
+        <div className="mb-8">
+          <span className="auth-eyebrow">Sign in</span>
+          <h1 className="auth-title">Welcome Back</h1>
+          <p className="auth-subtitle">Pick up right where your team left off.</p>
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 flex items-start">
-            <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="auth-alert">
+            <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <EnvelopeIcon className="h-5 w-5 text-slate-500" />
+            <label className="auth-label" htmlFor="login-email">Email Address</label>
+            <div className="auth-input-wrap">
+              <div className="auth-input-icon">
+                <EnvelopeIcon className="h-5 w-5" />
               </div>
               <input
+                id="login-email"
                 type="email"
                 required
-                className="input-field pl-10"
+                autoComplete="email"
+                className="auth-input"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -68,27 +79,25 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockClosedIcon className="h-5 w-5 text-slate-500" />
+            <label className="auth-label" htmlFor="login-password">Password</label>
+            <div className="auth-input-wrap">
+              <div className="auth-input-icon">
+                <LockClosedIcon className="h-5 w-5" />
               </div>
               <input
+                id="login-password"
                 type="password"
                 required
-                className="input-field pl-10"
-                placeholder="••••••••"
+                autoComplete="current-password"
+                className="auth-input"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary flex justify-center items-center py-3 text-lg"
-          >
+          <button type="submit" disabled={loading} className="auth-submit">
             {loading ? (
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -98,14 +107,12 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-slate-400">
+        <div className="auth-switch">
           Don't have an account?{' '}
-          <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
-            Sign up
-          </Link>
+          <Link to="/signup">Sign up</Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 
