@@ -25,9 +25,9 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2 group">
               <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform shrink-0">
-                <span className="text-white font-bold text-xl">T</span>
+                <span className="text-white font-bold text-xl">P</span>
               </div>
-              <span className="text-xl font-black tracking-tight hidden sm:inline">Task Manager</span>
+              <span className="text-xl font-black tracking-tight hidden sm:inline">TaskPilot</span>
             </Link>
             <div className="hidden md:flex items-center gap-1 ml-4 border-l border-main pl-4">
               <Link to="/projects" className="px-3 py-2 rounded-lg text-sm font-bold text-main hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-colors">
