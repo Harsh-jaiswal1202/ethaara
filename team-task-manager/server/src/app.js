@@ -20,20 +20,33 @@ app.use(express.json());
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/labels', labelRoutes);
 
-// 404 handler
+// --- SERVE FRONTEND ---
+const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDistPath));
+
+// Health check (kept for internal use)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Catch-all route to serve index.html for React Router
+app.get('*', (req, res, next) => {
+  // If the request is for an API route that wasn't found, don't serve index.html
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(clientDistPath, 'index.html'));
+});
+
+// 404 handler for API routes
 app.use((req, res) => {
-  res.status(404).json({ error: true, message: 'Route not found', status: 404 });
+  res.status(404).json({ error: true, message: 'API route not found', status: 404 });
 });
 
 // Global error handler

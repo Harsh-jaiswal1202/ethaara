@@ -1,0 +1,13 @@
+{
+  "name": "team-task-manager-monolith",
+  "version": "1.0.0",
+  "description": "Full-stack project management application",
+  "scripts": {
+    "postinstall": "npm install --prefix client && npm install --prefix server && npm run postinstall --prefix server",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
