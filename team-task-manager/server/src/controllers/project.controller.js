@@ -202,12 +202,19 @@ const deleteProject = async (req, res, next) => {
       return res.status(403).json({ error: true, message: 'Only the project admin can delete this project.', status: 403 });
     }
 
-    const attachments = await prisma.attachment.findMany({
-      where: { task: { projectId: id } },
-      select: { fileUrl: true },
-    });
+    let attachments = [];
+    try {
+      attachments = await prisma.attachment.findMany({
+        where: { task: { projectId: id } },
+        select: { fileUrl: true },
+      });
+    } catch (err) {
+      console.warn('⚠️ Could not fetch attachments for cleanup (table might be missing):', err.message);
+    }
 
-    deleteUploadedFiles(attachments);
+    if (attachments.length > 0) {
+      deleteUploadedFiles(attachments);
+    }
 
     await prisma.project.delete({ where: { id } });
 

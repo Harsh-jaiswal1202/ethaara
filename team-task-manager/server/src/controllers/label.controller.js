@@ -49,10 +49,15 @@ const getLabels = async (req, res, next) => {
   try {
     const { projectId } = req.params;
 
-    const labels = await prisma.label.findMany({
-      where: { projectId },
-      orderBy: { name: 'asc' },
-    });
+    let labels = [];
+    try {
+      labels = await prisma.label.findMany({
+        where: { projectId },
+        orderBy: { name: 'asc' },
+      });
+    } catch (err) {
+      console.warn('⚠️ Could not fetch labels (table might be missing):', err.message);
+    }
 
     res.json(labels);
   } catch (error) {
