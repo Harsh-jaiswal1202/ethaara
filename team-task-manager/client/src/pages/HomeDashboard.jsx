@@ -13,12 +13,14 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { roleBadgeClass } from '../utils/uiStyles';
+import { useSocket } from '../context/SocketContext';
 
 const HomeDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
+  const socket = useSocket();
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -32,11 +34,42 @@ const HomeDashboard = () => {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const initializeDashboard = async () => {
-      await fetchDashboard();
+      try {
+        const { data: dashboardData } = await api.get('/projects/dashboard');
+        if (mounted) setData(dashboardData);
+      } catch (error) {
+        console.error('Failed to fetch global dashboard', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
+
     initializeDashboard();
-  }, [fetchDashboard]);
+
+    if (socket) {
+      const handleUpdate = () => {
+        initializeDashboard();
+      };
+
+      socket.on('projectUpdated', handleUpdate);
+      socket.on('taskUpdated', handleUpdate);
+      socket.on('projectDeleted', handleUpdate);
+
+      return () => {
+        mounted = false;
+        socket.off('projectUpdated', handleUpdate);
+        socket.off('taskUpdated', handleUpdate);
+        socket.off('projectDeleted', handleUpdate);
+      };
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [socket]);
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
@@ -252,7 +285,7 @@ const HomeDashboard = () => {
                   placeholder="What is this project about?"
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                />
+                ></textarea>
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">

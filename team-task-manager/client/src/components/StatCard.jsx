@@ -19,9 +19,13 @@ const colorStyles = {
     card: 'from-red-500/10 to-transparent',
     icon: 'bg-red-500/10 text-red-600 dark:text-red-300 border-red-500/20 shadow-red-500/10',
   },
+  amber: {
+    card: 'from-amber-500/10 to-transparent',
+    icon: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20 shadow-amber-500/10',
+  },
 };
 
-const StatCard = ({ title, value, icon, color = 'primary', helper }) => {
+const StatCard = ({ title, value, icon, color = 'primary', helper, suffix = '' }) => {
   const styles = colorStyles[color] || colorStyles.primary;
 
   return (
@@ -29,10 +33,13 @@ const StatCard = ({ title, value, icon, color = 'primary', helper }) => {
       <div className={`w-12 h-12 rounded-lg flex items-center justify-center border shadow-lg ${styles.icon}`}>
         {icon}
       </div>
-      <div className="min-w-0">
-        <p className="text-muted text-sm font-bold uppercase tracking-tight">{title}</p>
-        <p className="text-3xl font-black leading-tight">{value}</p>
-        {helper && <p className="text-muted text-xs mt-1">{helper}</p>}
+      <div className="min-w-0 flex-grow">
+        <p className="text-muted text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">{title}</p>
+        <div className="flex items-baseline gap-1">
+          <p className="text-3xl font-black leading-tight">{value}</p>
+          {suffix && <span className="text-sm font-bold text-muted">{suffix}</span>}
+        </div>
+        {helper && <p className="text-muted text-[10px] mt-1 font-bold truncate">{helper}</p>}
       </div>
     </div>
   );
